@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random MP3 Player</title>
+</head>
+<body>
+    <h1>Random Motivation Speech Player</h1>
+    <button onclick="playRandomMp3()">Play Random MP3</button>
+    <audio id="audioPlayer" controls></audio>
+
+    <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
+    <script>
+        // Replace 'YOUR_ACCESS_TOKEN' with your actual Dropbox access token
+        const ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN';
+        const dbx = new Dropbox.Dropbox({ accessToken: ACCESS_TOKEN });
+
+        function playRandomMp3() {
+            dbx.filesListFolder({path: ''})
+                .then(response => {
+                    const files = response.entries.filter(entry => entry['.tag'] === 'file' && entry.name.endsWith('.mp3'));
+                    if (files.length === 0) {
+                        alert('No MP3 files found in your Dropbox folder.');
+                        return;
+                    }
+                    const randomFile = files[Math.floor(Math.random() * files.length)];
+                    return dbx.filesGetTemporaryLink({path: randomFile.path_lower});
+                })
+                .then(linkResponse => {
+                    if (linkResponse) {
+                        const audioPlayer = document.getElementById('audioPlayer');
+                        audioPlayer.src = linkResponse.link;
+                        audioPlayer.play();
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('An error occurred while accessing Dropbox.');
+                });
+        }
+    </script>
+</body>
+</html>
